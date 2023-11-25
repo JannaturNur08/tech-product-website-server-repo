@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
@@ -27,9 +28,37 @@ async function run() {
 
 		const userCollection = client.db("FinalProject").collection("users");
 
+		//jwt api
+		app.post("/jwt", async (req, res) => {
+			const user = req.body;
+			const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+				expiresIn: "1h",
+			});
+			res.send({ token });
+		});
+
+		//middlewares
+		const verifyToken = (req,res,next) => {
+			console.log(req.headers.authorization);
+			if(!req.headers.authorization){
+               return res.status(401).send({message: 'forbidden access'});
+			}
+			const token = req.headers.authorization.split(' ')[1];
+			jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded)=> {
+				if(err){
+					return res.status(401).send({message: 'forbidden access'});
+				}
+				
+				req.decoded = decoded;
+				next();
+			  });
+			
+		}
+
 		// users api
 
-		app.get("/users", async (req, res) => {
+		app.get("/users",verifyToken, async (req, res) => {
+			console.log(req.headers);
 			const result = await userCollection.find().toArray();
 			res.send(result);
 		});
@@ -49,7 +78,7 @@ async function run() {
 			res.send(result);
 		});
 
-    //make moderator
+		//make moderator
 		app.patch("/users/moderator/:id", async (req, res) => {
 			const id = req.params.id;
 			const query = { _id: new ObjectId(id) };
@@ -61,7 +90,7 @@ async function run() {
 			const result = await userCollection.updateOne(query, updatedDoc);
 			res.send(result);
 		});
-    //make admin
+		//make admin
 		app.patch("/users/admin/:id", async (req, res) => {
 			const id = req.params.id;
 			const query = { _id: new ObjectId(id) };
@@ -74,7 +103,7 @@ async function run() {
 			res.send(result);
 		});
 
-    //user delete by admin
+		//user delete by admin
 		app.delete("/users/:id", async (req, res) => {
 			const id = req.params.id;
 			const query = { _id: new ObjectId(id) };
