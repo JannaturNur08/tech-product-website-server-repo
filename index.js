@@ -164,6 +164,33 @@ async function run() {
 			const result = await productCollection.find(query).toArray();
 			res.send(result);
 		});
+		app.get("/products/:id", async (req, res) => {
+			const id = req.params.id;
+			const query = { _id: new ObjectId(id) };
+			const result = await productCollection.findOne(query);
+			res.send(result);
+		});
+
+		app.patch("/products/:id", async (req, res) => {
+			const product = req.body;
+			const id = req.params.id;
+			const query = { _id: new ObjectId(id) };
+			const updatedDoc = {
+				$set: {
+					ownerEmail: product.ownerEmail,
+				product_name: product.product_name,
+				description: product.description,
+				image: product.image,
+                tags: product.tags,
+				facebook_external_link: product.facebook_external_link,
+				google_external_link: product.google_external_link,
+				status: "pending",
+				timestamp: product.timestamp,
+				},
+			};
+			const result = await productCollection.updateOne(query,updatedDoc);
+			res.send(result);
+		});
 		app.delete("/products/:id", async (req, res) => {
 			const id = req.params.id;
 			const query = { _id: new ObjectId(id) };
