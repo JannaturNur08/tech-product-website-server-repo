@@ -27,8 +27,9 @@ async function run() {
 		await client.connect();
 
 		const userCollection = client.db("FinalProject").collection("users");
-		const productCollection = client.db("FinalProject").collection("products");
-		
+		const productCollection = client
+			.db("FinalProject")
+			.collection("products");
 
 		//jwt api
 		app.post("/jwt", async (req, res) => {
@@ -151,12 +152,24 @@ async function run() {
 			res.send(result);
 		});
 
-		app.get('/myProducts',async(req,res)=> {
-           const email = req.query.email;
-		   const query = {  ownerEmail : email };
-		   const result = await productCollection.find(query).toArray();
-		   res.send(result);
-		})
+		app.post("/products", async (req, res) => {
+			const product = req.body;
+			const result = await productCollection.insertOne(product);
+			res.send(result);
+		});
+
+		app.get("/products", async (req, res) => {
+			const email = req.query.email;
+			const query = { ownerEmail: email };
+			const result = await productCollection.find(query).toArray();
+			res.send(result);
+		});
+		app.delete("/products/:id", async (req, res) => {
+			const id = req.params.id;
+			const query = { _id: new ObjectId(id) };
+			const result = await productCollection.deleteOne(query);
+			res.send(result);
+		});
 
 		// Send a ping to confirm a successful connection
 		await client.db("admin").command({ ping: 1 });
