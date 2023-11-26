@@ -192,27 +192,48 @@ async function run() {
 					google_external_link: product.google_external_link,
 					status: "pending",
 					timestamp: product.timestamp,
+					featured: "pending",
+					report: "pending",
 				},
 			};
 			const result = await productCollection.updateOne(query, updatedDoc);
 			res.send(result);
 		});
 
-		app.patch("/api/products/:productId", async (req, res) => {
-			const { status, Featured } = req.body;
+		app.patch("/api/status/:productId", async (req, res) => {
+			const { status } = req.body;
 			const productId = req.params.productId;
-			const query = { _id: new ObjectId(productId) };
-			console.log("productId", productId, "status", status);
+
 			if (!status) {
 				return res.json({ message: "Please provide a valid status" });
 			}
 			let update = {
 				$set: {
 					status: status,
-					Featured: Featured ? true : false,
 				},
 			};
-			const result = await productCollection.updateOne(query, update);
+
+			const result = await productCollection.updateOne(
+				{ _id: new ObjectId(productId) },
+				update
+			);
+			res.send(result);
+		});
+		app.patch("/api/featured/:productId", async (req, res) => {
+			const { featured } = req.body;
+			const productId = req.params.productId;
+
+			
+			let update = {
+				$set: {
+					featured: featured,
+				},
+			};
+
+			const result = await productCollection.updateOne(
+				{ _id: new ObjectId(productId) },
+				update
+			);
 			res.send(result);
 		});
 
