@@ -27,6 +27,8 @@ async function run() {
 		await client.connect();
 
 		const userCollection = client.db("FinalProject").collection("users");
+		const productCollection = client.db("FinalProject").collection("products");
+		
 
 		//jwt api
 		app.post("/jwt", async (req, res) => {
@@ -148,6 +150,13 @@ async function run() {
 			const result = await userCollection.deleteOne(query);
 			res.send(result);
 		});
+
+		app.get('/myProducts',async(req,res)=> {
+           const email = req.query.email;
+		   const query = {  ownerEmail : email };
+		   const result = await productCollection.find(query).toArray();
+		   res.send(result);
+		})
 
 		// Send a ping to confirm a successful connection
 		await client.db("admin").command({ ping: 1 });
