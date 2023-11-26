@@ -158,6 +158,12 @@ async function run() {
 			res.send(result);
 		});
 
+		//product apis
+
+		app.get("/products", async (req, res) => {
+			const result = await productCollection.find().toArray();
+			res.send(result);
+		});
 		app.get("/products", async (req, res) => {
 			const email = req.query.email;
 			const query = { ownerEmail: email };
@@ -178,19 +184,38 @@ async function run() {
 			const updatedDoc = {
 				$set: {
 					ownerEmail: product.ownerEmail,
-				product_name: product.product_name,
-				description: product.description,
-				image: product.image,
-                tags: product.tags,
-				facebook_external_link: product.facebook_external_link,
-				google_external_link: product.google_external_link,
-				status: "pending",
-				timestamp: product.timestamp,
+					product_name: product.product_name,
+					description: product.description,
+					image: product.image,
+					tags: product.tags,
+					facebook_external_link: product.facebook_external_link,
+					google_external_link: product.google_external_link,
+					status: "pending",
+					timestamp: product.timestamp,
 				},
 			};
-			const result = await productCollection.updateOne(query,updatedDoc);
+			const result = await productCollection.updateOne(query, updatedDoc);
 			res.send(result);
 		});
+
+		app.patch("/api/products/:productId", async (req, res) => {
+			const { status, Featured } = req.body;
+			const productId = req.params.productId;
+			const query = { _id: new ObjectId(productId) };
+			console.log("productId", productId, "status", status);
+			if (!status) {
+				return res.json({ message: "Please provide a valid status" });
+			}
+			let update = {
+				$set: {
+					status: status,
+					Featured: Featured ? true : false,
+				},
+			};
+			const result = await productCollection.updateOne(query, update);
+			res.send(result);
+		});
+
 		app.delete("/products/:id", async (req, res) => {
 			const id = req.params.id;
 			const query = { _id: new ObjectId(id) };
