@@ -170,6 +170,18 @@ async function run() {
 			const result = await productCollection.find(query).toArray();
 			res.send(result);
 		});
+
+		app.get("/api/featuredProducts", async (req, res) => {
+			const products = await productCollection.find().toArray();
+			const sortbyFeatured = products.filter(
+				(product) => product.featured === "featured"
+			);
+			const sortedProducts = sortbyFeatured.sort((a, b) => {
+				return a.timestamp > b.timestamp ? -1 : 1;
+			});
+			res.send(sortedProducts);
+		});
+
 		app.get("/products/:id", async (req, res) => {
 			const id = req.params.id;
 			const query = { _id: new ObjectId(id) };
@@ -219,11 +231,11 @@ async function run() {
 			);
 			res.send(result);
 		});
+
 		app.patch("/api/featured/:productId", async (req, res) => {
 			const { featured } = req.body;
 			const productId = req.params.productId;
 
-			
 			let update = {
 				$set: {
 					featured: featured,
