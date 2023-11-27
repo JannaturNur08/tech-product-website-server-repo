@@ -249,6 +249,22 @@ async function run() {
 			);
 			res.send(result);
 		});
+		app.patch("/api/report/:productId", async (req, res) => {
+			const { report } = req.body;
+			const productId = req.params.productId;
+
+			let update = {
+				$set: {
+					report: report,
+				},
+			};
+
+			const result = await productCollection.updateOne(
+				{ _id: new ObjectId(productId) },
+				update
+			);
+			res.send(result);
+		});
 		app.patch("/api/upvote/:productId", async (req, res) => {
 			const { vote } = req.body;
 			const productId = req.params.productId;
