@@ -30,6 +30,7 @@ async function run() {
 		const productCollection = client
 			.db("FinalProject")
 			.collection("products");
+        const reviewCollection = client.db("FinalProject").collection("reviews");
 
 		//jwt api
 		app.post("/jwt", async (req, res) => {
@@ -287,6 +288,26 @@ async function run() {
 			const query = { _id: new ObjectId(id) };
 			const result = await productCollection.deleteOne(query);
 			res.send(result);
+		});
+
+
+		// reviews api
+
+		// post reviews by productId
+		app.post("/api/reviews", async (req, res) => {
+			const newReview = req.body;
+			const reviews = await reviewCollection.insertOne(newReview);
+			res.send(reviews);
+		});
+
+		// get reviews by categoryId
+		app.get("/api/reviews/:id", async (req, res) => {
+			const productId = req.params.id;
+			// Fetch reviews from the database where `categoryId` matches
+			const query = { productId : productId };
+			const cursor = reviewCollection.find(query);
+			const reviews = await cursor.toArray();
+			res.send(reviews);
 		});
 
 		// Send a ping to confirm a successful connection
