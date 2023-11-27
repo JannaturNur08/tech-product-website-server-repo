@@ -152,6 +152,7 @@ async function run() {
 			res.send(result);
 		});
 
+		//add products
 		app.post("/products", async (req, res) => {
 			const product = req.body;
 			const result = await productCollection.insertOne(product);
@@ -164,7 +165,7 @@ async function run() {
 			const result = await productCollection.find().toArray();
 			res.send(result);
 		});
-		app.get("/products", async (req, res) => {
+		app.get("/myProducts", async (req, res) => {
 			const email = req.query.email;
 			const query = { ownerEmail: email };
 			const result = await productCollection.find(query).toArray();
@@ -239,6 +240,22 @@ async function run() {
 			let update = {
 				$set: {
 					featured: featured,
+				},
+			};
+
+			const result = await productCollection.updateOne(
+				{ _id: new ObjectId(productId) },
+				update
+			);
+			res.send(result);
+		});
+		app.patch("/api/upvote/:productId", async (req, res) => {
+			const { vote } = req.body;
+			const productId = req.params.productId;
+
+			let update = {
+				$set: {
+					vote: vote,
 				},
 			};
 
