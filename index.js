@@ -173,6 +173,7 @@ async function run() {
 			res.send(result);
 		});
 
+		//featured products
 		app.get("/api/featuredProducts", async (req, res) => {
 			const products = await productCollection.find().toArray();
 			const sortbyFeatured = products.filter(
@@ -180,6 +181,16 @@ async function run() {
 			);
 			const sortedProducts = sortbyFeatured.sort((a, b) => {
 				return a.timestamp > b.timestamp ? -1 : 1;
+			});
+			res.send(sortedProducts);
+		});
+
+		//trending products
+		app.get("/api/trendingProducts", async (req, res) => {
+			const products = await productCollection.find().toArray();
+			
+			const sortedProducts = products.sort((a, b) => {
+				return a.vote > b.vote ? -1 : 1;
 			});
 			res.send(sortedProducts);
 		});
