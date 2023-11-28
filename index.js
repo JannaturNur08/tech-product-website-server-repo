@@ -173,6 +173,18 @@ async function run() {
 			res.send(result);
 		});
 
+		//accepted products
+		app.get("/api/acceptedProducts", async (req, res) => {
+			const products = await productCollection.find().toArray();
+			const sortbyAccepted = products.filter(
+				(product) => product.status === "accepted"
+			);
+			const sortedProducts = sortbyAccepted.sort((a, b) => {
+				return a.timestamp > b.timestamp ? -1 : 1;
+			});
+			res.send(sortedProducts);
+		});
+		
 		//featured products
 		app.get("/api/featuredProducts", async (req, res) => {
 			const products = await productCollection.find().toArray();
