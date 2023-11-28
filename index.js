@@ -256,7 +256,7 @@ async function run() {
 			const result = await productCollection.updateOne(query, updatedDoc);
 			res.send(result);
 		});
-
+		//accept or reject request
 		app.patch("/api/status/:productId", async (req, res) => {
 			const { status } = req.body;
 			const productId = req.params.productId;
@@ -277,6 +277,7 @@ async function run() {
 			res.send(result);
 		});
 
+		//make featured
 		app.patch("/api/featured/:productId", async (req, res) => {
 			const { featured } = req.body;
 			const productId = req.params.productId;
@@ -293,6 +294,29 @@ async function run() {
 			);
 			res.send(result);
 		});
+
+		//reported products
+		app.get("/api/reportedProducts", verifyToken, async (req, res) => {
+			const products = await productCollection.find().toArray();
+			const sortbyReported = products.filter(
+				(product) => product.report === "reported"
+			);
+
+			res.send(sortbyReported);
+		});
+
+		//delete reported products
+		app.delete(
+			"/api/reportedProduct/:productId",
+			verifyToken,
+			async (req, res) => {
+				let productId = req.params.productId;
+				const query = { _id: new ObjectId(productId) };
+				const result = await productCollection.deleteOne(query);
+				res.send(result);
+			}
+		);
+
 		app.patch("/api/report/:productId", async (req, res) => {
 			const { report } = req.body;
 			const productId = req.params.productId;
