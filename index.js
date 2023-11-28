@@ -184,7 +184,7 @@ async function run() {
 			});
 			res.send(sortedProducts);
 		});
-		
+
 		//featured products
 		app.get("/api/featuredProducts", async (req, res) => {
 			const products = await productCollection.find().toArray();
@@ -197,15 +197,7 @@ async function run() {
 			res.send(sortedProducts);
 		});
 
-		//trending products
-		app.get("/api/trendingProducts", async (req, res) => {
-			const products = await productCollection.find().toArray();
-			
-			const sortedProducts = products.sort((a, b) => {
-				return a.vote > b.vote ? -1 : 1;
-			});
-			res.send(sortedProducts);
-		});
+	
 
 		app.get("/products/:id", async (req, res) => {
 			const id = req.params.id;
