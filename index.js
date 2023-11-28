@@ -376,6 +376,17 @@ async function run() {
 			res.send(reviews);
 		});
 
+		app.get("/adminStatistic", verifyToken, async (req, res) => {
+			const users = await userCollection.estimatedDocumentCount();
+			const products = await productCollection.find().toArray();
+
+			const acceptedProducts = products
+				.filter((product) => product.status === "accepted");
+				const product = acceptedProducts.length;
+			const reviews = await reviewCollection.estimatedDocumentCount();
+			res.send({ users, product, reviews });
+		});
+
 		// Send a ping to confirm a successful connection
 		await client.db("admin").command({ ping: 1 });
 		console.log(
