@@ -30,7 +30,9 @@ async function run() {
 		const productCollection = client
 			.db("FinalProject")
 			.collection("products");
-        const reviewCollection = client.db("FinalProject").collection("reviews");
+		const reviewCollection = client
+			.db("FinalProject")
+			.collection("reviews");
 
 		//jwt api
 		app.post("/jwt", async (req, res) => {
@@ -175,7 +177,6 @@ async function run() {
 
 		//accepted products
 		app.get("/api/acceptedProducts", async (req, res) => {
-			
 			const products = await productCollection.find().toArray();
 			const sortbyAccepted = products.filter(
 				(product) => product.status === "accepted"
@@ -198,32 +199,33 @@ async function run() {
 			res.send(sortedProducts);
 		});
 
-
 		//  search for products by tags
-	app.get('/searchProducts/:search',async(req,res)=> {
-		try {
-			const searchTerm = req.params.search;
-			
-			// Check if searchTerm is a string
-			if (typeof searchTerm !== 'string') {
-				console.error("Invalid search term:", searchTerm);
-				res.status(400).send("Invalid search term");
-				return;
+		app.get("/searchProducts/:search", async (req, res) => {
+			try {
+				const searchTerm = req.params.search;
+
+				// Check if searchTerm is a string
+				if (typeof searchTerm !== "string") {
+					console.error("Invalid search term:", searchTerm);
+					res.status(400).send("Invalid search term");
+					return;
+				}
+
+				console.log("Searching for " + searchTerm);
+
+				const results = await productCollection
+					.find({
+						status: "accepted",
+						tags: { $regex: searchTerm, $options: "i" },
+					})
+					.toArray();
+
+				res.send(results);
+			} catch (error) {
+				console.error("Error searching for products:", error);
+				res.status(500).send("Internal Server Error");
 			}
-	
-			console.log("Searching for " + searchTerm);
-	
-			const results = await productCollection.find({
-				status: "accepted",
-				tags: { $regex: searchTerm, $options: 'i' }
-			}).toArray();
-			
-			res.send(results);
-		} catch (error) {
-			console.error("Error searching for products:", error);
-			res.status(500).send("Internal Server Error");
-		}
-	})
+		});
 
 		app.get("/products/:id", async (req, res) => {
 			const id = req.params.id;
@@ -331,7 +333,6 @@ async function run() {
 			res.send(result);
 		});
 
-
 		// reviews api
 
 		// post reviews by productId
@@ -345,7 +346,7 @@ async function run() {
 		app.get("/api/reviews/:id", async (req, res) => {
 			const productId = req.params.id;
 			// Fetch reviews from the database where `categoryId` matches
-			const query = { productId : productId };
+			const query = { productId: productId };
 			const cursor = reviewCollection.find(query);
 			const reviews = await cursor.toArray();
 			res.send(reviews);
