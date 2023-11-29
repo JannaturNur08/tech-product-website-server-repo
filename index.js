@@ -210,7 +210,9 @@ async function run() {
 		app.get("/searchProducts/:search", async (req, res) => {
 			try {
 				const searchTerm = req.params.search;
-
+		const page = parseInt(req.query.page) || 0; 
+		const size = parseInt(req.query.size) || 3; 
+				console.log("pagination query", page, size);
 				// Check if searchTerm is a string
 				if (typeof searchTerm !== "string") {
 					console.error("Invalid search term:", searchTerm);
@@ -225,7 +227,9 @@ async function run() {
 						status: "accepted",
 						tags: { $regex: searchTerm, $options: "i" },
 					})
-					.toArray();
+					.skip(page * size)
+				.limit(size)
+				.toArray();
 
 				res.send(results);
 			} catch (error) {
