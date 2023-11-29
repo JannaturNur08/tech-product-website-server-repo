@@ -199,9 +199,7 @@ async function run() {
 			const products = await productCollection
 				.find({
 					featured: "featured",
-				})
-				.sort({ timestamp: -1 })
-				.toArray();
+				}).toArray();
 			// const sortbyFeatured = products.filter(
 			// 	(product) => product.featured === "featured"
 			// );
@@ -332,7 +330,7 @@ async function run() {
 				res.send(result);
 			}
 		);
-
+         //make report 
 		app.patch("/api/report/:productId", async (req, res) => {
 			const { report } = req.body;
 			const productId = req.params.productId;
@@ -349,6 +347,7 @@ async function run() {
 			);
 			res.send(result);
 		});
+		// update vote count
 		app.patch("/api/upvote/:productId", async (req, res) => {
 			const { vote } = req.body;
 			const productId = req.params.productId;
@@ -365,7 +364,7 @@ async function run() {
 			);
 			res.send(result);
 		});
-
+        //delete product
 		app.delete("/products/:id", async (req, res) => {
 			const id = req.params.id;
 			const query = { _id: new ObjectId(id) };
@@ -392,6 +391,7 @@ async function run() {
 			res.send(reviews);
 		});
 
+		//admin statistics
 		app.get("/adminStatistic", verifyToken, async (req, res) => {
 			const users = await userCollection.estimatedDocumentCount();
 			const products = await productCollection.find().toArray();
@@ -415,6 +415,19 @@ async function run() {
 			} else {
 				res.json({ isValid: false });
 			}
+		});
+        //get all coupons
+		app.get('/coupons',verifyToken,async(req,res)=> {
+            const result = await couponCollection.find().toArray();
+			res.send(result);
+		})
+
+		  //delete coupon
+		  app.delete("/coupons/:id", async (req, res) => {
+			const id = req.params.id;
+			const query = { _id: new ObjectId(id) };
+			const result = await couponCollection.deleteOne(query);
+			res.send(result);
 		});
 
 		// payment intent
