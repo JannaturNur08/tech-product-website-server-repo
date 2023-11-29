@@ -3,6 +3,7 @@ const app = express();
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
 
@@ -33,6 +34,10 @@ async function run() {
 		const reviewCollection = client
 			.db("FinalProject")
 			.collection("reviews");
+		const couponCollection = client
+			.db("FinalProject")
+			.collection("coupons");
+			const paymentCollection = client.db("FinalProject").collection("payments");
 
 		//jwt api
 		app.post("/jwt", async (req, res) => {
@@ -380,11 +385,51 @@ async function run() {
 			const users = await userCollection.estimatedDocumentCount();
 			const products = await productCollection.find().toArray();
 
-			const acceptedProducts = products
-				.filter((product) => product.status === "accepted");
-				const product = acceptedProducts.length;
+			const acceptedProducts = products.filter(
+				(product) => product.status === "accepted"
+			);
+			const product = acceptedProducts.length;
 			const reviews = await reviewCollection.estimatedDocumentCount();
 			res.send({ users, product, reviews });
+		});
+
+		// validate coupon
+		app.post('/api/validate-coupon',verifyToken, async(req,res)=> {
+			const { couponCode } = req.body;
+			const coupon = await couponCollection.findOne({coupon_code : couponCode});
+			if (coupon && new Date(coupon.expiry_date) > new Date()) {
+				res.json({ isValid: true, discount: coupon.discount_amount });
+			  } else {
+				res.json({ isValid: false });
+			  }
+		});
+
+
+			// payment intent
+			app.post("/create-payment-intent", async (req, res) => {
+				const { price } = req.body;
+				const amount = parseInt(price * 100);
+				console.log(amount, "amount inside the intent");
+	
+				const paymentIntent = await stripe.paymentIntents.create({
+					amount: amount,
+					currency: "usd",
+					payment_method_types: ["card"],
+				});
+	
+				res.send({
+					clientSecret: paymentIntent.client_secret,
+				});
+			});
+
+		// payment for subscription
+		app.post("/payments", async (req, res) => {
+			const payment = req.body;
+			const paymentResult = await paymentCollection.insertOne(payment);
+
+		
+
+			res.send(paymentResult);
 		});
 
 		// Send a ping to confirm a successful connection
