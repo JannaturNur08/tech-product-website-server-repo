@@ -37,7 +37,9 @@ async function run() {
 		const couponCollection = client
 			.db("FinalProject")
 			.collection("coupons");
-			const paymentCollection = client.db("FinalProject").collection("payments");
+		const paymentCollection = client
+			.db("FinalProject")
+			.collection("payments");
 
 		//jwt api
 		app.post("/jwt", async (req, res) => {
@@ -394,40 +396,56 @@ async function run() {
 		});
 
 		// validate coupon
-		app.post('/api/validate-coupon',verifyToken, async(req,res)=> {
+		app.post("/api/validate-coupon", verifyToken, async (req, res) => {
 			const { couponCode } = req.body;
-			const coupon = await couponCollection.findOne({coupon_code : couponCode});
+			const coupon = await couponCollection.findOne({
+				coupon_code: couponCode,
+			});
 			if (coupon && new Date(coupon.expiry_date) > new Date()) {
 				res.json({ isValid: true, discount: coupon.discount_amount });
-			  } else {
+			} else {
 				res.json({ isValid: false });
-			  }
+			}
 		});
 
+		// payment intent
+		app.post("/create-payment-intent", async (req, res) => {
+			const { price } = req.body;
+			const amount = parseInt(price * 100);
+			console.log(amount, "amount inside the intent");
 
-			// payment intent
-			app.post("/create-payment-intent", async (req, res) => {
-				const { price } = req.body;
-				const amount = parseInt(price * 100);
-				console.log(amount, "amount inside the intent");
-	
-				const paymentIntent = await stripe.paymentIntents.create({
-					amount: amount,
-					currency: "usd",
-					payment_method_types: ["card"],
-				});
-	
-				res.send({
-					clientSecret: paymentIntent.client_secret,
-				});
+			const paymentIntent = await stripe.paymentIntents.create({
+				amount: amount,
+				currency: "usd",
+				payment_method_types: ["card"],
 			});
+
+			res.send({
+				clientSecret: paymentIntent.client_secret,
+			});
+		});
+
+		// subscription checked
+		app.get("/payments/:email", verifyToken, async (req, res) => {
+			const email = req.params.email;
+
+			if (email !== req.decoded.email) {
+				return res.status(403).send({ message: "forbidden access" });
+			}
+
+			const query = { email: email };
+			const user = await paymentCollection.findOne(query);
+			let subscribed = false;
+			if (user) {
+				subscribed = user?.status === "subscribed";
+			}
+			res.send({ subscribed });
+		});
 
 		// payment for subscription
 		app.post("/payments", async (req, res) => {
 			const payment = req.body;
 			const paymentResult = await paymentCollection.insertOne(payment);
-
-		
 
 			res.send(paymentResult);
 		});
