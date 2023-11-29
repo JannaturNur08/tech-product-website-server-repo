@@ -25,7 +25,7 @@ const client = new MongoClient(uri, {
 async function run() {
 	try {
 		// Connect the client to the server	(optional starting in v4.7)
-		await client.connect();
+		//await client.connect();
 
 		const userCollection = client.db("FinalProject").collection("users");
 		const productCollection = client
@@ -196,22 +196,27 @@ async function run() {
 
 		//featured products
 		app.get("/api/featuredProducts", async (req, res) => {
-			const products = await productCollection.find().toArray();
-			const sortbyFeatured = products.filter(
-				(product) => product.featured === "featured"
-			);
-			const sortedProducts = sortbyFeatured.sort((a, b) => {
-				return a.timestamp > b.timestamp ? -1 : 1;
-			});
-			res.send(sortedProducts);
+			const products = await productCollection
+				.find({
+					featured: "featured",
+				})
+				.sort({ timestamp: -1 })
+				.toArray();
+			// const sortbyFeatured = products.filter(
+			// 	(product) => product.featured === "featured"
+			// );
+			// const sortedProducts = sortbyFeatured.sort((a, b) => {
+			// 	return a.timestamp > b.timestamp ? -1 : 1;
+			// });
+			res.send(products);
 		});
 
 		//  search for products by tags
 		app.get("/searchProducts/:search", async (req, res) => {
 			try {
 				const searchTerm = req.params.search;
-		const page = parseInt(req.query.page) || 0; 
-		const size = parseInt(req.query.size) || 3; 
+				const page = parseInt(req.query.page) || 0;
+				const size = parseInt(req.query.size) || 3;
 				console.log("pagination query", page, size);
 				// Check if searchTerm is a string
 				if (typeof searchTerm !== "string") {
@@ -228,8 +233,8 @@ async function run() {
 						tags: { $regex: searchTerm, $options: "i" },
 					})
 					.skip(page * size)
-				.limit(size)
-				.toArray();
+					.limit(size)
+					.toArray();
 
 				res.send(results);
 			} catch (error) {
@@ -455,10 +460,10 @@ async function run() {
 		});
 
 		// Send a ping to confirm a successful connection
-		await client.db("admin").command({ ping: 1 });
-		console.log(
-			"Pinged your deployment. You successfully connected to MongoDB!"
-		);
+		// await client.db("admin").command({ ping: 1 });
+		// console.log(
+		// 	"Pinged your deployment. You successfully connected to MongoDB!"
+		// );
 	} finally {
 		// Ensures that the client will close when you finish/error
 		// await client.close();
