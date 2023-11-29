@@ -199,7 +199,8 @@ async function run() {
 			const products = await productCollection
 				.find({
 					featured: "featured",
-				}).toArray();
+				})
+				.toArray();
 			// const sortbyFeatured = products.filter(
 			// 	(product) => product.featured === "featured"
 			// );
@@ -240,14 +241,14 @@ async function run() {
 				res.status(500).send("Internal Server Error");
 			}
 		});
-
+		//get products by id
 		app.get("/products/:id", async (req, res) => {
 			const id = req.params.id;
 			const query = { _id: new ObjectId(id) };
 			const result = await productCollection.findOne(query);
 			res.send(result);
 		});
-
+		//update products
 		app.patch("/products/:id", async (req, res) => {
 			const product = req.body;
 			const id = req.params.id;
@@ -330,7 +331,7 @@ async function run() {
 				res.send(result);
 			}
 		);
-         //make report 
+		//make report
 		app.patch("/api/report/:productId", async (req, res) => {
 			const { report } = req.body;
 			const productId = req.params.productId;
@@ -364,7 +365,7 @@ async function run() {
 			);
 			res.send(result);
 		});
-        //delete product
+		//delete product
 		app.delete("/products/:id", async (req, res) => {
 			const id = req.params.id;
 			const query = { _id: new ObjectId(id) };
@@ -416,14 +417,48 @@ async function run() {
 				res.json({ isValid: false });
 			}
 		});
-        //get all coupons
-		app.get('/coupons',verifyToken,async(req,res)=> {
-            const result = await couponCollection.find().toArray();
-			res.send(result);
-		})
 
-		  //delete coupon
-		  app.delete("/coupons/:id", async (req, res) => {
+        //add coupon
+		app.post("/coupons", async (req, res) => {
+			const coupon = req.body;
+			const result = await couponCollection.insertOne(coupon);
+			res.send(result);
+		});
+
+		//get all coupons
+		app.get("/coupons", verifyToken, async (req, res) => {
+			const result = await couponCollection.find().toArray();
+			res.send(result);
+		});
+
+		//get coupons by id
+		app.get("/coupons/:id", async (req, res) => {
+			const id = req.params.id;
+			const query = { _id: new ObjectId(id) };
+			const result = await couponCollection.findOne(query);
+			res.send(result);
+		});
+
+		//update coupons
+		app.patch("/coupons/:id", async (req, res) => {
+			const coupon = req.body;
+			const id = req.params.id;
+			const query = { _id: new ObjectId(id) };
+			const updatedDoc = {
+				$set: {
+					coupon_code: coupon.coupon_code,
+					expiry_date: coupon.expiry_date,
+
+					discount_amount: coupon.discount_amount,
+					description: coupon.description,
+				},
+			};
+			const result = await couponCollection.updateOne(query, updatedDoc);
+			res.send(result);
+		});
+
+		//delete coupon
+		app.delete("/coupons/:id", async (req, res) => {
 			const id = req.params.id;
 			const query = { _id: new ObjectId(id) };
 			const result = await couponCollection.deleteOne(query);
