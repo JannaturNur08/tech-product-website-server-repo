@@ -356,6 +356,8 @@ async function run() {
 			let update = {
 				$set: {
 					vote: vote,
+					hasVoted: true,
+					hasDownVoted: true
 				},
 			};
 
@@ -363,6 +365,7 @@ async function run() {
 				{ _id: new ObjectId(productId) },
 				update
 			);
+			console.log(result);
 			res.send(result);
 		});
 		//delete product
