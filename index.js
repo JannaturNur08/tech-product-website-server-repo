@@ -350,14 +350,58 @@ async function run() {
 		});
 		// update vote count
 		app.patch("/api/upvote/:productId", async (req, res) => {
-			const { vote } = req.body;
+			const { vote, userEmail } = req.body;
 			const productId = req.params.productId;
+			const product = await productCollection.findOne({
+				_id: new ObjectId(productId),
+			});
+
+			if (product.votedUsers.includes(userEmail)) {
+				return res
+					.status(400)
+					.json({ error: "User has already voted" });
+			}
 
 			let update = {
 				$set: {
 					vote: vote,
 					hasVoted: true,
-					hasDownVoted: true
+					hasDownVoted: false,
+				},
+				$push: {
+					votedUsers: userEmail,
+				},
+			};
+
+			const result = await productCollection.updateOne(
+				{ _id: new ObjectId(productId) },
+				update
+			);
+			console.log(result);
+			res.send(result);
+		});
+
+		app.patch("/api/downvote/:productId", async (req, res) => {
+			const { vote, userEmail } = req.body;
+			const productId = req.params.productId;
+			const product = await productCollection.findOne({
+				_id: new ObjectId(productId),
+			});
+
+			if (product.downVotedUsers.includes(userEmail)) {
+				return res
+					.status(400)
+					.json({ error: "User has already downvoted" });
+			}
+
+			let update = {
+				$set: {
+					vote: vote,
+					hasVoted: true,
+					hasDownVoted: true,
+				},
+				$push: {
+					downVotedUsers: userEmail,
 				},
 			};
 
@@ -421,7 +465,7 @@ async function run() {
 			}
 		});
 
-        //add coupon
+		//add coupon
 		app.post("/coupons", async (req, res) => {
 			const coupon = req.body;
 			const result = await couponCollection.insertOne(coupon);
@@ -429,7 +473,7 @@ async function run() {
 		});
 
 		//get all coupons
-		app.get("/coupons",  async (req, res) => {
+		app.get("/coupons", async (req, res) => {
 			const result = await couponCollection.find().toArray();
 			res.send(result);
 		});
