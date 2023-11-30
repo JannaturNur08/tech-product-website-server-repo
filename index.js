@@ -429,7 +429,7 @@ async function run() {
 		});
 
 		//get all coupons
-		app.get("/coupons", verifyToken, async (req, res) => {
+		app.get("/coupons",  async (req, res) => {
 			const result = await couponCollection.find().toArray();
 			res.send(result);
 		});
